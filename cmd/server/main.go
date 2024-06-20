@@ -10,11 +10,12 @@ import (
 func main() {
 	memStorage := storage.NewMemStorage()
 
-	http.HandleFunc("POST /update/{type}/{name}/{value}", func(wr http.ResponseWriter, r *http.Request) {
-		handler.HandleUpdate(memStorage, wr, r)
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /update/{type}/{name}/{value}", func(rw http.ResponseWriter, r *http.Request) {
+		handler.HandleUpdate(memStorage, rw, r)
 	})
 
-	err := http.ListenAndServe(`:8080`, nil)
+	err := http.ListenAndServe(`:8080`, mux)
 	if err != nil {
 		panic(err)
 	}
