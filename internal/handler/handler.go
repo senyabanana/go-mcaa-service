@@ -3,44 +3,40 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
-	storage "github.com/senyabanana/go-mcaa-service/internal/storage"
+	"github.com/senyabanana/go-mcaa-service/internal/storage"
 )
 
 // HandleUpdate обрабатывает HTTP-запроосы для обновления метрик
-func HandleUpdate(memStorage *storage.MemStorage, w http.ResponseWriter, r *http.Request) {
-	urlParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-	if len(urlParts) != 4 {
-		http.Error(w, "invalid request", http.StatusNotFound)
-		return
-	}
-	metricType, metricName, metricValue := urlParts[1], urlParts[2], urlParts[3]
+func HandleUpdate(memStorage *storage.MemStorage, wr http.ResponseWriter, r *http.Request) {
+	metricType := r.PathValue("type")
+	metricName := r.PathValue("name")
+	metricValue := r.PathValue("value")
+
 	if metricName == "" {
-		http.Error(w, "missing metric name", http.StatusNotFound)
+		http.Error(wr, "metric name not provided", http.StatusNotFound)
 		return
 	}
+
 	switch metricType {
 	case storage.Gauge:
 		value, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
-			http.Error(w, "invalid gauge value", http.StatusBadRequest)
+			http.Error(wr, "invalid value for gauge", http.StatusBadRequest)
 			return
 		}
-		memStorage.UpdateGauge(metricValue, value)
+		memStorage.UpdateGauge(metricName, value)
 	case storage.Counter:
 		value, err := strconv.ParseInt(metricValue, 10, 64)
 		if err != nil {
-			http.Error(w, "invalid counter value", http.StatusBadRequest)
+			http.Error(wr, "invalid value for counter", http.StatusBadRequest)
 			return
 		}
-		memStorage.UpdateCounter(metricValue, value)
+		memStorage.UpdateCounter(metricName, value)
 	default:
-		http.Error(w, "invalid metric type", http.StatusBadRequest)
+		http.Error(wr, "unknown metric type", http.StatusBadRequest)
+		return
 	}
-	responseBody := "OK"
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Set("Content-Length", strconv.Itoa(len(responseBody)))
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(responseBody))
+
+	wr.WriteHeader(http.StatusOK)
 }
