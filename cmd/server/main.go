@@ -3,17 +3,15 @@ package main
 import (
 	"net/http"
 
-	handler "github.com/senyabanana/go-mcaa-service/internal/handler"
-	storage "github.com/senyabanana/go-mcaa-service/internal/storage"
+	"github.com/senyabanana/go-mcaa-service/internal/handlers/update"
+	"github.com/senyabanana/go-mcaa-service/internal/storage/memory"
 )
 
 func main() {
-	memStorage := storage.NewMemStorage()
+	memStorage := memory.NewMemStorage()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /update/{type}/{name}/{value}", func(rw http.ResponseWriter, r *http.Request) {
-		handler.HandleUpdate(memStorage, rw, r)
-	})
+	mux.HandleFunc("POST /update/{type}/{name}/{value}", update.HandleUpdate(memStorage))
 
 	err := http.ListenAndServe(`:8080`, mux)
 	if err != nil {
