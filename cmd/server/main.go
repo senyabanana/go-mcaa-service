@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/senyabanana/go-mcaa-service/internal/handlers/update"
-	"github.com/senyabanana/go-mcaa-service/internal/storage/memory"
+	"github.com/senyabanana/go-mcaa-service/internal/storage"
 )
 
 func main() {
-	memStorage := memory.NewMemStorage()
+	memStorage := storage.NewMemStorage()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /update/{type}/{name}/{value}", update.HandleUpdate(memStorage))

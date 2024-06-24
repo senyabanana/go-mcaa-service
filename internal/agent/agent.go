@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/senyabanana/go-mcaa-service/internal/storage/memory"
+	"github.com/senyabanana/go-mcaa-service/internal/storage"
 )
 
 // Agent (HTTP-клиент) для сбора runtime-метрик и их последующей отправки на сервер
@@ -137,14 +137,14 @@ func (a *Agent) sendAllMetrics() {
 	a.mu.Unlock()
 
 	for name, value := range gaugesCopy {
-		err := a.sendMetric(memory.Gauge, name, value)
+		err := a.sendMetric(storage.Gauge, name, value)
 		if err != nil {
 			log.Printf("failed to send %s: %v\n", name, err)
 			return
 		}
 	}
 	for name, value := range countersCopy {
-		err := a.sendMetric(memory.Counter, name, value)
+		err := a.sendMetric(storage.Counter, name, value)
 		if err != nil {
 			log.Printf("failed to send %s: %v\n", name, err)
 			return
