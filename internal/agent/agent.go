@@ -36,10 +36,11 @@ func NewAgent(url string, pollInterval, reportInterval time.Duration) *Agent {
 	}
 }
 
+// RunAgent запускает агент и его горутины
 func (a *Agent) RunAgent() {
 	// увеличиваем счетчик для горутин
 	a.wg.Add(2)
-	go a.collectMetric()
+	go a.collectMetrics()
 	go a.sendMetrics()
 	fmt.Println("Starting agent...")
 	// ожидаем завершение всех горутин
@@ -47,7 +48,7 @@ func (a *Agent) RunAgent() {
 }
 
 // collectMetric отвечает за сбор метрик С ЗАДАННОЙ ЧАСТОТОЙ
-func (a *Agent) collectMetric() {
+func (a *Agent) collectMetrics() {
 	// уменьшаем счетчик, когда метод завершится
 	defer a.wg.Done()
 	for {
@@ -105,7 +106,7 @@ func (a *Agent) collectRuntimeMetrics() {
 }
 
 // sendOnceMetric отвечает за отправку одной метрики на сервер
-func (a *Agent) sendOnceMetric(metricType, name string, value interface{}) error {
+func (a *Agent) sendMetric(metricType, name string, value interface{}) error {
 	url := fmt.Sprintf("%s/update/%s/%s/%v", a.ServerUrl, metricType, name, value)
 	log.Printf("sending metric: %s/%s to %s with value: %v\n", metricType, name, a.ServerUrl, value)
 	response, err := http.Post(url, "text/plain", nil)
@@ -121,30 +122,29 @@ func (a *Agent) sendOnceMetric(metricType, name string, value interface{}) error
 
 // sendAllMetrics отвечает за отпраку всех собранных метрик на сервер БЕЗ ЗАДАННОЙ ЧАСТОТЫ
 func (a *Agent) sendAllMetrics() {
+	a.mu.Lock()
 	// создаем копии, чтобы избежать изменений в оригинальных данных во время отправки
 	gaugesCopy := make(map[string]float64)
 	countersCopy := make(map[string]int64)
 
-	a.mu.Lock()
-	fmt.Printf("\n===== Current pollcount is %d =====\n", a.counters["PollCount"])
 	for name, value := range a.gauges {
 		gaugesCopy[name] = value
 	}
 	for name, value := range a.counters {
 		countersCopy[name] = value
 	}
+	fmt.Printf("\n===== Current pollcount is %d =====\n", a.counters["PollCount"])
 	a.mu.Unlock()
 
 	for name, value := range gaugesCopy {
-		err := a.sendOnceMetric(memory.Gauge, name, value)
+		err := a.sendMetric(memory.Gauge, name, value)
 		if err != nil {
 			log.Printf("failed to send %s: %v\n", name, err)
 			return
 		}
 	}
-
 	for name, value := range countersCopy {
-		err := a.sendOnceMetric(memory.Counter, name, value)
+		err := a.sendMetric(memory.Counter, name, value)
 		if err != nil {
 			log.Printf("failed to send %s: %v\n", name, err)
 			return
