@@ -105,7 +105,7 @@ func (a *Agent) collectRuntimeMetrics() {
 	a.counters["PollCount"]++
 }
 
-// sendOnceMetric отвечает за отправку одной метрики на сервер
+// sendMetric отвечает за отправку одной метрики на сервер
 func (a *Agent) sendMetric(metricType, name string, value interface{}) error {
 	url := fmt.Sprintf("%s/update/%s/%s/%v", a.ServerUrl, metricType, name, value)
 	log.Printf("sending metric: %s/%s to %s with value: %v\n", metricType, name, a.ServerUrl, value)
