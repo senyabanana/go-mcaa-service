@@ -12,7 +12,7 @@ import (
 	"github.com/senyabanana/go-mcaa-service/internal/storage"
 )
 
-// Agent (HTTP-клиент) для сбора runtime-метрик и их последующей отправки на сервер
+// Agent (HTTP-клиент) для сбора runtime-метрик и их последующей отправки на сервер.
 type Agent struct {
 	PollInterval   time.Duration
 	ReportInterval time.Duration
@@ -25,7 +25,7 @@ type Agent struct {
 	wg sync.WaitGroup
 }
 
-// NewAgent создает новый экземпляр агента
+// NewAgent создает новый экземпляр агента.
 func NewAgent(url string, pollInterval, reportInterval time.Duration) *Agent {
 	return &Agent{
 		PollInterval:   pollInterval,
@@ -36,7 +36,7 @@ func NewAgent(url string, pollInterval, reportInterval time.Duration) *Agent {
 	}
 }
 
-// RunAgent запускает агент и его горутины
+// RunAgent запускает агент и его горутины.
 func (a *Agent) RunAgent() {
 	// увеличиваем счетчик для горутин
 	a.wg.Add(2)
@@ -47,7 +47,7 @@ func (a *Agent) RunAgent() {
 	a.wg.Wait()
 }
 
-// collectMetric отвечает за сбор метрик С ЗАДАННОЙ ЧАСТОТОЙ
+// collectMetric отвечает за сбор метрик С ЗАДАННОЙ ЧАСТОТОЙ.
 func (a *Agent) collectMetrics() {
 	// уменьшаем счетчик, когда метод завершится
 	defer a.wg.Done()
@@ -60,7 +60,7 @@ func (a *Agent) collectMetrics() {
 	}
 }
 
-// sendMetrics отвечает за отправку собранных метрик на сервер С ЗАДАННОЙ ЧАСТОТОЙ
+// sendMetrics отвечает за отправку собранных метрик на сервер С ЗАДАННОЙ ЧАСТОТОЙ.
 func (a *Agent) sendMetrics() {
 	defer a.wg.Done()
 	for {
@@ -69,7 +69,7 @@ func (a *Agent) sendMetrics() {
 	}
 }
 
-// collectRuntimeMetrics собирает runtime-метрики и записывает их в мапу
+// collectRuntimeMetrics собирает runtime-метрики и записывает их в мапу.
 func (a *Agent) collectRuntimeMetrics() {
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
@@ -105,7 +105,7 @@ func (a *Agent) collectRuntimeMetrics() {
 	a.counters["PollCount"]++
 }
 
-// sendMetric отвечает за отправку одной метрики на сервер
+// sendMetric отвечает за отправку одной метрики на сервер.
 func (a *Agent) sendMetric(metricType, name string, value interface{}) error {
 	url := fmt.Sprintf("%s/update/%s/%s/%v", a.ServerUrl, metricType, name, value)
 	log.Printf("sending metric: %s/%s to %s with value: %v\n", metricType, name, a.ServerUrl, value)
@@ -120,7 +120,7 @@ func (a *Agent) sendMetric(metricType, name string, value interface{}) error {
 	return nil
 }
 
-// sendAllMetrics отвечает за отпраку всех собранных метрик на сервер БЕЗ ЗАДАННОЙ ЧАСТОТЫ
+// sendAllMetrics отвечает за отпраку всех собранных метрик на сервер БЕЗ ЗАДАННОЙ ЧАСТОТЫ.
 func (a *Agent) sendAllMetrics() {
 	a.mu.Lock()
 	// создаем копии, чтобы избежать изменений в оригинальных данных во время отправки

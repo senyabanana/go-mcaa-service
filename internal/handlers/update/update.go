@@ -1,19 +1,19 @@
 package update
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/senyabanana/go-mcaa-service/internal/storage"
 )
 
-// HandleUpdate обрабатывает HTTP-запроосы для обновления метрик
+// HandleUpdate обрабатывает HTTP-запроосы для обновления метрик.
 func HandleUpdate(memStorage storage.Repository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		metricType := r.PathValue("type")
-		metricName := r.PathValue("name")
-		metricValue := r.PathValue("value")
+		metricType := chi.URLParam(r, "type")
+		metricName := chi.URLParam(r, "name")
+		metricValue := chi.URLParam(r, "value")
 
 		rw.Header().Set("Content-Type", "text/plain")
 
@@ -21,9 +21,6 @@ func HandleUpdate(memStorage storage.Repository) http.HandlerFunc {
 			rw.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
-
-		// выводим информацию о запросе
-		fmt.Printf("Request: %s %s\n", r.Method, r.URL.Path)
 
 		if metricName == "" {
 			http.Error(rw, "metric name not provided", http.StatusNotFound)

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/senyabanana/go-mcaa-service/internal/agent"
 	"time"
+
+	"github.com/senyabanana/go-mcaa-service/internal/agent"
 )
 
 const (
