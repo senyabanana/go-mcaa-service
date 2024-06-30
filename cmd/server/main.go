@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -13,6 +14,8 @@ import (
 )
 
 func main() {
+	parseFlags()
+
 	memStorage := storage.NewMemStorage()
 
 	r := chi.NewRouter()
@@ -27,5 +30,6 @@ func main() {
 			r.Get(`/{type}/{name}`, value.HandleValue(memStorage))
 		})
 	})
-	log.Fatal(http.ListenAndServe(`:8080`, r))
+	fmt.Println("Running server on ", flagRunAddr)
+	log.Fatal(http.ListenAndServe(flagRunAddr, r))
 }
