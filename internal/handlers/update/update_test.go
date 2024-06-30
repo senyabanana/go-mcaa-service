@@ -1,6 +1,7 @@
 package update
 
 import (
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -47,8 +48,8 @@ func TestHandleUpdate(t *testing.T) {
 			method:  http.MethodPost,
 			storage: storage.NewMemStorage(),
 			want: want{
-				code:        http.StatusMovedPermanently,
-				contentType: "",
+				code:        http.StatusNotFound,
+				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
@@ -88,22 +89,22 @@ func TestHandleUpdate(t *testing.T) {
 			storage: storage.NewMemStorage(),
 			want: want{
 				code:        http.StatusMethodNotAllowed,
-				contentType: "text/plain",
+				contentType: "",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Создаем новый ServeMux
-			mux := http.NewServeMux()
-			mux.HandleFunc("/update/{type}/{name}/{value}", HandleUpdate(tt.storage))
+			// Создаем новый chi.Router
+			r := chi.NewRouter()
+			r.Post("/update/{type}/{name}/{value}", HandleUpdate(tt.storage))
 
 			// Создаем HTTP запрос
 			req := httptest.NewRequest(tt.method, tt.target, nil)
 			w := httptest.NewRecorder()
 
-			// Обрабатываем запрос через ServeHTTP
-			mux.ServeHTTP(w, req)
+			// Обрабатываем запрос через chi.Router
+			r.ServeHTTP(w, req)
 
 			// Проверяем результаты
 			res := w.Result()
