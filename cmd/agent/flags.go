@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 )
 
 var (
@@ -23,5 +25,23 @@ func parseFlags() {
 		fmt.Println("Unknown flag provided")
 		flag.Usage()
 		os.Exit(1)
+	}
+
+	if envAddress := os.Getenv("ADDRESS"); envAddress != "" {
+		flagRunAddr = envAddress
+	}
+	if envPoll := os.Getenv("POLL_INTERVAL"); envPoll != "" {
+		value, err := strconv.Atoi(envPoll)
+		if err != nil {
+			log.Fatal(err)
+		}
+		flagRunPoll = value
+	}
+	if envReport := os.Getenv("REPORT_INTERVAL"); envReport != "" {
+		value, err := strconv.Atoi(envReport)
+		if err != nil {
+			log.Fatal(err)
+		}
+		flagRunReport = value
 	}
 }

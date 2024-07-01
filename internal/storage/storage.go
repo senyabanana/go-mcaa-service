@@ -17,6 +17,8 @@ type Repository interface {
 	GetGauge(name string) (float64, bool)
 	GetCounter(name string) (int64, bool)
 	GetAllMetrics() string
+	SetGauge(name string, value float64)
+	SetCounter(name string, value int64)
 }
 
 // MemStorage - структура для хранения метрик.
@@ -67,4 +69,14 @@ func (ms *MemStorage) GetAllMetrics() string {
 	}
 	result.WriteString("</body></html>")
 	return result.String()
+}
+
+// SetGauge устанавливает значение метрики типа gauge
+func (ms *MemStorage) SetGauge(name string, value float64) {
+	ms.gauges[name] = value
+}
+
+// SetCounter устанавливает значение метрики типа counter
+func (ms *MemStorage) SetCounter(name string, value int64) {
+	ms.counters[name] = value
 }
