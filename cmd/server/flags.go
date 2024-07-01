@@ -24,4 +24,8 @@ func parseFlags() {
 		flag.Usage()
 		os.Exit(1)
 	}
+
+	if envAddress := os.Getenv("ADDRESS"); envAddress != "" {
+		flagRunAddr = envAddress
+	}
 }
