@@ -19,7 +19,7 @@ import (
 type Agent struct {
 	PollInterval   time.Duration
 	ReportInterval time.Duration
-	ServerUrl      string
+	ServerURL      string
 	gauges         map[string]float64
 	counters       map[string]int64
 	// мьютекс для синхронизации доступа к метрикам
@@ -33,7 +33,7 @@ func NewAgent(url string, pollInterval, reportInterval time.Duration) *Agent {
 	return &Agent{
 		PollInterval:   pollInterval,
 		ReportInterval: reportInterval,
-		ServerUrl:      url,
+		ServerURL:      url,
 		gauges:         make(map[string]float64),
 		counters:       make(map[string]int64),
 	}
@@ -114,7 +114,7 @@ func (a *Agent) sendMetric(metric models.Metrics) error {
 	if err != nil {
 		return err
 	}
-	url := a.ServerUrl + "/update"
+	url := a.ServerURL + "/update"
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 	if err != nil {
 		return err
