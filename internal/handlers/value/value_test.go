@@ -1,17 +1,20 @@
 package value
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/senyabanana/go-mcaa-service/internal/models"
 	"github.com/senyabanana/go-mcaa-service/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandleValue(t *testing.T) {
+func TestHandleValuePlain(t *testing.T) {
 	type want struct {
 		code        int
 		contentType string
@@ -93,7 +96,7 @@ func TestHandleValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Создаем новый chi.Router
 			r := chi.NewRouter()
-			r.Get("/value/{type}/{name}", HandleValue(tt.storage))
+			r.Get("/value/{type}/{name}", HandleValuePlain(tt.storage))
 
 			// Создаем HTTP запрос
 			req := httptest.NewRequest(tt.method, tt.target, nil)
@@ -112,6 +115,95 @@ func TestHandleValue(t *testing.T) {
 			bodyBytes, err := io.ReadAll(res.Body)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want.body, string(bodyBytes))
+		})
+	}
+}
+
+func TestHandleValueJSON(t *testing.T) {
+	memStorage := storage.NewMemStorage()
+
+	// Предварительное заполнение хранилища метриками
+	initialGauge := 123.45
+	initialCounter := int64(123)
+	memStorage.UpdateGauge("TestGauge", initialGauge)
+	memStorage.UpdateCounter("TestCounter", initialCounter)
+
+	tests := []struct {
+		name           string
+		requestMetric  models.Metrics
+		expectedMetric models.Metrics
+		expectedStatus int
+		expectedBody   string
+	}{
+		{
+			name: "Valid Gauge Metric",
+			requestMetric: models.Metrics{
+				ID:    "TestGauge",
+				MType: "gauge",
+			},
+			expectedMetric: models.Metrics{
+				ID:    "TestGauge",
+				MType: "gauge",
+				Value: &initialGauge,
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name: "Valid Counter Metric",
+			requestMetric: models.Metrics{
+				ID:    "TestCounter",
+				MType: "counter",
+			},
+			expectedMetric: models.Metrics{
+				ID:    "TestCounter",
+				MType: "counter",
+				Delta: &initialCounter,
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name: "Metric Not Found",
+			requestMetric: models.Metrics{
+				ID:    "NonExistent",
+				MType: "gauge",
+			},
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   "metric not found\n",
+		},
+		{
+			name: "Unknown Metric Type",
+			requestMetric: models.Metrics{
+				ID:    "TestUnknown",
+				MType: "unknown",
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "unknown metric type\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := HandleValueJSON(memStorage)
+
+			metricData, err := json.Marshal(tt.requestMetric)
+			assert.NoError(t, err)
+
+			req, err := http.NewRequest(http.MethodPost, "/value", bytes.NewBuffer(metricData))
+			assert.NoError(t, err)
+			req.Header.Set("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+			if tt.expectedStatus == http.StatusOK {
+				var responseMetric models.Metrics
+				err := json.NewDecoder(rr.Body).Decode(&responseMetric)
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedMetric, responseMetric)
+			} else {
+				assert.Equal(t, tt.expectedBody, rr.Body.String())
+			}
 		})
 	}
 }

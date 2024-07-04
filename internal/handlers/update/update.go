@@ -8,8 +8,8 @@ import (
 	"github.com/senyabanana/go-mcaa-service/internal/storage"
 )
 
-// HandleUpdate обрабатывает HTTP-запроосы для обновления метрик.
-func HandleUpdate(memStorage storage.Repository) http.HandlerFunc {
+// HandleUpdatePlain обрабатывает HTTP-запроосы для обновления метрик.
+func HandleUpdatePlain(memStorage storage.Repository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		metricType := chi.URLParam(r, "type")
 		metricName := chi.URLParam(r, "name")
@@ -50,3 +50,44 @@ func HandleUpdate(memStorage storage.Repository) http.HandlerFunc {
 		rw.WriteHeader(http.StatusOK)
 	}
 }
+
+//
+//// HandleUpdateJSON передает метрики методом POST.
+//func HandleUpdateJSON(memStorage storage.Repository) http.HandlerFunc {
+//	return func(rw http.ResponseWriter, r *http.Request) {
+//		rw.Header().Set("Content-Type", "application/json")
+//
+//		var m storage.Metrics
+//		if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
+//			http.Error(rw, "invalid request body", http.StatusBadRequest)
+//			return
+//		}
+//
+//		switch m.MType {
+//		case storage.Gauge:
+//			if m.Value == nil {
+//				http.Error(rw, "missing value for gauge", http.StatusBadRequest)
+//				return
+//			}
+//			memStorage.UpdateGauge(m.ID, *m.Value)
+//		case storage.Counter:
+//			if m.Delta == nil {
+//				http.Error(rw, "missing delta for counter", http.StatusBadRequest)
+//				return
+//			}
+//			memStorage.UpdateCounter(m.ID, *m.Delta)
+//		default:
+//			http.Error(rw, "unknown metric type", http.StatusBadRequest)
+//			return
+//		}
+//
+//		resp, err := json.Marshal(m)
+//		if err != nil {
+//			http.Error(rw, "could not marshal response", http.StatusInternalServerError)
+//			return
+//		}
+//
+//		rw.WriteHeader(http.StatusOK)
+//		rw.Write(resp)
+//	}
+//}

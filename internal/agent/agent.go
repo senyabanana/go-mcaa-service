@@ -1,15 +1,18 @@
 package agent
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
 	"sync"
 	"time"
 
+	"github.com/senyabanana/go-mcaa-service/internal/models"
 	"github.com/senyabanana/go-mcaa-service/internal/storage"
+	"github.com/sirupsen/logrus"
 )
 
 // Agent (HTTP-клиент) для сбора runtime-метрик и их последующей отправки на сервер.
@@ -42,7 +45,7 @@ func (a *Agent) RunAgent() {
 	a.wg.Add(2)
 	go a.collectMetrics()
 	go a.sendMetrics()
-	fmt.Println("Starting agent...")
+	logrus.Info("Starting agent...")
 	// ожидаем завершение всех горутин
 	a.wg.Wait()
 }
@@ -54,7 +57,7 @@ func (a *Agent) collectMetrics() {
 	for {
 		a.mu.Lock()
 		a.collectRuntimeMetrics()
-		fmt.Printf("%d ", a.counters["PollCount"])
+		logrus.Infof("%d ", a.counters["PollCount"])
 		a.mu.Unlock()
 		time.Sleep(a.PollInterval)
 	}
@@ -106,17 +109,36 @@ func (a *Agent) collectRuntimeMetrics() {
 }
 
 // sendMetric отвечает за отправку одной метрики на сервер.
-func (a *Agent) sendMetric(metricType, name string, value interface{}) error {
-	url := fmt.Sprintf("%s/update/%s/%s/%v", a.ServerUrl, metricType, name, value)
-	log.Printf("sending metric: %s/%s to %s with value: %v\n", metricType, name, a.ServerUrl, value)
-	response, err := http.Post(url, "text/plain", nil)
+func (a *Agent) sendMetric(metric models.Metrics) error {
+	data, err := json.Marshal(metric)
 	if err != nil {
 		return err
 	}
-	err = response.Body.Close()
+	url := a.ServerUrl + "/update"
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("server returned: %v", resp.Status)
+	}
+
+	// выполняем успешное логирование
+	if metric.MType == storage.Gauge && metric.Value != nil {
+		logrus.Infof("Successfully sent %s metric %s with value %v to %s", metric.MType, metric.ID, *metric.Value, url)
+	} else if metric.MType == storage.Counter && metric.Delta != nil {
+		logrus.Infof("Successfully sent %s metric %s with delta %v to %s", metric.MType, metric.ID, *metric.Delta, url)
+	}
+
 	return nil
 }
 
@@ -133,20 +155,30 @@ func (a *Agent) sendAllMetrics() {
 	for name, value := range a.counters {
 		countersCopy[name] = value
 	}
-	fmt.Printf("\n===== Current pollcount is %d =====\n", a.counters["PollCount"])
+	logrus.Infof("===== Current pollcount is %d =====\n", a.counters["PollCount"])
 	a.mu.Unlock()
 
 	for name, value := range gaugesCopy {
-		err := a.sendMetric(storage.Gauge, name, value)
+		metric := models.Metrics{
+			ID:    name,
+			MType: storage.Gauge,
+			Value: &value,
+		}
+		err := a.sendMetric(metric)
 		if err != nil {
-			log.Printf("failed to send %s: %v\n", name, err)
+			logrus.Infof("failed to send %s: %v\n", name, err)
 			return
 		}
 	}
 	for name, value := range countersCopy {
-		err := a.sendMetric(storage.Counter, name, value)
+		metric := models.Metrics{
+			ID:    name,
+			MType: storage.Counter,
+			Delta: &value,
+		}
+		err := a.sendMetric(metric)
 		if err != nil {
-			log.Printf("failed to send %s: %v\n", name, err)
+			logrus.Infof("failed to send %s: %v\n", name, err)
 			return
 		}
 	}
