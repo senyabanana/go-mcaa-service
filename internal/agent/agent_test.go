@@ -14,7 +14,7 @@ import (
 
 func TestNewAgent(t *testing.T) {
 	type want struct {
-		expectedUrl    string
+		expectedURL    string
 		expectedPoll   time.Duration
 		expectedReport time.Duration
 	}
@@ -31,7 +31,7 @@ func TestNewAgent(t *testing.T) {
 			reportInterval: 10 * time.Second,
 			url:            "http://example.com",
 			want: want{
-				expectedUrl:    "http://example.com",
+				expectedURL:    "http://example.com",
 				expectedPoll:   2 * time.Second,
 				expectedReport: 10 * time.Second,
 			},
@@ -43,7 +43,7 @@ func TestNewAgent(t *testing.T) {
 
 			assert.Equal(t, agent.PollInterval, tt.want.expectedPoll)
 			assert.Equal(t, agent.ReportInterval, tt.want.expectedReport)
-			assert.Equal(t, agent.ServerUrl, tt.want.expectedUrl)
+			assert.Equal(t, agent.ServerURL, tt.want.expectedURL)
 			assert.NotNil(t, agent.gauges)
 			assert.NotNil(t, agent.counters)
 		})
