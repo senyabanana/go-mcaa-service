@@ -1,11 +1,14 @@
 package agent
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/senyabanana/go-mcaa-service/internal/models"
+	"github.com/senyabanana/go-mcaa-service/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -74,23 +77,25 @@ func TestCollectRuntimeMetrics(t *testing.T) {
 func TestSendMetric(t *testing.T) {
 	tests := []struct {
 		name          string
-		metricType    string
-		metricName    string
-		metricValue   interface{}
+		metric        models.Metrics
 		expectedError bool
 	}{
 		{
-			name:          "Send Gauge Metric",
-			metricType:    "gauge",
-			metricName:    "TestGauge",
-			metricValue:   123.45,
+			name: "Send Gauge Metric",
+			metric: models.Metrics{
+				ID:    "TestGauge",
+				MType: "gauge",
+				Value: func() *float64 { v := 123.45; return &v }(),
+			},
 			expectedError: false,
 		},
 		{
-			name:          "Send Counter Metric",
-			metricType:    "counter",
-			metricName:    "TestCounter",
-			metricValue:   123,
+			name: "Send Counter Metric",
+			metric: models.Metrics{
+				ID:    "TestCounter",
+				MType: "counter",
+				Delta: func() *int64 { v := int64(123); return &v }(),
+			},
 			expectedError: false,
 		},
 	}
@@ -98,13 +103,25 @@ func TestSendMetric(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "POST", r.Method)
+				assert.Equal(t, http.MethodPost, r.Method)
+
+				var receivedMetric models.Metrics
+				err := json.NewDecoder(r.Body).Decode(&receivedMetric)
+				assert.NoError(t, err)
+				assert.Equal(t, tt.metric.ID, receivedMetric.ID)
+				assert.Equal(t, tt.metric.MType, receivedMetric.MType)
+				if tt.metric.MType == storage.Gauge {
+					assert.Equal(t, *tt.metric.Value, *receivedMetric.Value)
+				} else if tt.metric.MType == storage.Counter {
+					assert.Equal(t, *tt.metric.Delta, *receivedMetric.Delta)
+				}
+
 				w.WriteHeader(http.StatusOK)
 			}))
 			defer server.Close()
 
 			agent := NewAgent(server.URL, time.Second, time.Second)
-			err := agent.sendMetric(tt.metricType, tt.metricName, tt.metricValue)
+			err := agent.sendMetric(tt.metric)
 
 			if tt.expectedError {
 				assert.Error(t, err)
