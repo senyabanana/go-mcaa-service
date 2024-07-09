@@ -23,6 +23,7 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.LoggingMiddleware)
+	r.Use(middleware.GzipHandler)
 	r.Route(`/`, func(r chi.Router) {
 		r.Get(`/`, startpoint.HandleStart(memStorage))
 		r.Route(`/update`, func(r chi.Router) {

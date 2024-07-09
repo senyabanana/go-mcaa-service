@@ -14,6 +14,7 @@ var (
 	flagRunReport int
 )
 
+// parseFlags парсит командные флаги и устанавливает соответствующие значения переменных.
 func parseFlags() {
 	flag.StringVar(&flagRunAddr, "a", "localhost:8080", "HTTP server address")
 	flag.IntVar(&flagRunPoll, "p", 2, "Poll interval in seconds")

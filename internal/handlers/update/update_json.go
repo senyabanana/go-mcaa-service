@@ -8,6 +8,7 @@ import (
 	"github.com/senyabanana/go-mcaa-service/internal/storage"
 )
 
+// HandleUpdateJSON обрабатывает HTTP POST запросы на обновление метрик в формате JSON.
 func HandleUpdateJSON(memStorage storage.Repository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		var m models.Metrics

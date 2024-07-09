@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/senyabanana/go-mcaa-service/internal/middleware"
 	"github.com/senyabanana/go-mcaa-service/internal/models"
 	"github.com/senyabanana/go-mcaa-service/internal/storage"
 	"github.com/sirupsen/logrus"
@@ -114,12 +115,19 @@ func (a *Agent) sendMetric(metric models.Metrics) error {
 	if err != nil {
 		return err
 	}
+
+	b, err := middleware.Compress(data)
+	if err != nil {
+		return err
+	}
+
 	url := a.ServerURL + "/update"
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip")
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)

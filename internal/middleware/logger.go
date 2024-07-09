@@ -7,17 +7,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// responseData содержит информацию о статусе ответа и его размере.
 type responseData struct {
 	status int
 	size   int
 }
 
+// loggingResponseWriter оборачивает стандартный http.ResponseWriter,
+// добавляя возможность логирования статуса и размера ответа.
 type loggingResponseWriter struct {
 	http.ResponseWriter
 	responseData  *responseData
 	headerWritten bool // проверяем, был ли заголовок уже записан
 }
 
+// Write переопределяет метод Write, чтобы записывать размер данных в responseData.
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	if !r.headerWritten {
 		r.WriteHeader(http.StatusOK)
@@ -27,6 +31,7 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	return size, err
 }
 
+// WriteHeader переопределяет метод WriteHeader, чтобы записывать статус ответа в responseData.
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	if !r.headerWritten {
 		r.ResponseWriter.WriteHeader(statusCode)
@@ -35,6 +40,8 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	}
 }
 
+// LoggingMiddleware оборачивает следующий http.Handler,
+// логируя информацию о каждом запросе.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		start := time.Now()

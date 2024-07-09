@@ -8,6 +8,7 @@ import (
 	"github.com/senyabanana/go-mcaa-service/internal/storage"
 )
 
+// HandleValueJSON обрабатывает HTTP POST запросы на получение значений метрик в формате JSON.
 func HandleValueJSON(memStorage storage.Repository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		var m models.Metrics
