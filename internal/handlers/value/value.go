@@ -77,9 +77,9 @@ func HandleValueJSON(memStorage storage.Repository) http.HandlerFunc {
 				return
 			}
 			m.Delta = &delta
-		default:
-			http.Error(rw, "unknown metric type", http.StatusBadRequest)
-			return
+			//default:
+			//	http.Error(rw, "unknown metric type", http.StatusBadRequest)
+			//	return
 		}
 
 		resp, err := json.Marshal(m)
