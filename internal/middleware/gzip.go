@@ -13,7 +13,7 @@ import (
 // gzipWriter оборачивает http.ResponseWriter, добавляя поддержку сжатия gzip.
 type gzipWriter struct {
 	http.ResponseWriter
-	w io.Writer
+	w *gzip.Writer
 }
 
 // Write переопределяет метод Write, чтобы записывать данные в gzip.Writer.
