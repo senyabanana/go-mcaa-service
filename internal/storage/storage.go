@@ -28,7 +28,7 @@ type MemStorage struct {
 }
 
 // NewMemStorage - создание нового экземпляра MemStorage.
-func NewMemStorage() *MemStorage {
+func NewMemStorage(storeInterval int, filePath string, restore bool) *MemStorage {
 	return &MemStorage{
 		gauges:   make(map[string]float64),
 		counters: make(map[string]int64),
