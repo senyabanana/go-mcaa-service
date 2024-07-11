@@ -55,7 +55,7 @@ func (a *Agent) collectMetrics() {
 	defer a.wg.Done()
 	for {
 		a.mu.Lock()
-		a.collectRuntimeMetrics()
+		a.CollectRuntimeMetrics()
 		logrus.Infof("%d ", a.counters["PollCount"])
 		a.mu.Unlock()
 		time.Sleep(a.PollInterval)

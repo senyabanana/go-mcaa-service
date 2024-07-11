@@ -29,7 +29,7 @@ func TestHandleUpdatePlain(t *testing.T) {
 			name:    "updateGauge",
 			target:  "/update/gauge/gauge_test/1.2",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusOK,
 				contentType: "text/plain",
@@ -39,7 +39,7 @@ func TestHandleUpdatePlain(t *testing.T) {
 			name:    "updateCounter",
 			target:  "/update/counter/counter_test/10",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusOK,
 				contentType: "text/plain",
@@ -49,7 +49,7 @@ func TestHandleUpdatePlain(t *testing.T) {
 			name:    "movedPermanently",
 			target:  "/update/gauge//22.1",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusNotFound,
 				contentType: "text/plain; charset=utf-8",
@@ -59,7 +59,7 @@ func TestHandleUpdatePlain(t *testing.T) {
 			name:    "invalidGauge",
 			target:  "/update/gauge/my_gauge/sss",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusBadRequest,
 				contentType: "text/plain; charset=utf-8",
@@ -69,7 +69,7 @@ func TestHandleUpdatePlain(t *testing.T) {
 			name:    "invalidCounter",
 			target:  "/update/counter/my_counter/22.3",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusBadRequest,
 				contentType: "text/plain; charset=utf-8",
@@ -79,7 +79,7 @@ func TestHandleUpdatePlain(t *testing.T) {
 			name:    "invalidMetricType",
 			target:  "/update/sss/my_sss/ewq",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusBadRequest,
 				contentType: "text/plain; charset=utf-8",
@@ -89,7 +89,7 @@ func TestHandleUpdatePlain(t *testing.T) {
 			name:    "invalidMethod",
 			target:  "/update/gauge/gauge_test/1.2",
 			method:  http.MethodGet,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusMethodNotAllowed,
 				contentType: "",
@@ -120,7 +120,7 @@ func TestHandleUpdatePlain(t *testing.T) {
 }
 
 func TestHandleUpdateJSON(t *testing.T) {
-	memStorage := storage.NewMemStorage()
+	memStorage := storage.NewMemStorage(300, "", false)
 
 	tests := []struct {
 		name           string

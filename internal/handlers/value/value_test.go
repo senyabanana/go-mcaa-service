@@ -32,7 +32,7 @@ func TestHandleValuePlain(t *testing.T) {
 			target: "/value/gauge/test_gauge",
 			method: http.MethodGet,
 			storage: func() storage.Repository {
-				s := storage.NewMemStorage()
+				s := storage.NewMemStorage(300, "", false)
 				s.SetGauge("test_gauge", 1.2)
 				return s
 			}(),
@@ -47,7 +47,7 @@ func TestHandleValuePlain(t *testing.T) {
 			target: "/value/counter/test_counter",
 			method: http.MethodGet,
 			storage: func() storage.Repository {
-				s := storage.NewMemStorage()
+				s := storage.NewMemStorage(300, "", false)
 				s.SetCounter("test_counter", 10)
 				return s
 			}(),
@@ -61,7 +61,7 @@ func TestHandleValuePlain(t *testing.T) {
 			name:    "metricNotFound",
 			target:  "/value/gauge/unknown",
 			method:  http.MethodGet,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusNotFound,
 				contentType: "text/plain; charset=utf-8",
@@ -72,7 +72,7 @@ func TestHandleValuePlain(t *testing.T) {
 			name:    "unknownMetricType",
 			target:  "/value/unknown/test",
 			method:  http.MethodGet,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusBadRequest,
 				contentType: "text/plain; charset=utf-8",
@@ -83,7 +83,7 @@ func TestHandleValuePlain(t *testing.T) {
 			name:    "invalidMethod",
 			target:  "/value/gauge/test_gauge",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusMethodNotAllowed,
 				contentType: "",
@@ -120,7 +120,7 @@ func TestHandleValuePlain(t *testing.T) {
 }
 
 func TestHandleValueJSON(t *testing.T) {
-	memStorage := storage.NewMemStorage()
+	memStorage := storage.NewMemStorage(300, "", false)
 
 	// Предварительное заполнение хранилища метриками
 	initialGauge := 123.45

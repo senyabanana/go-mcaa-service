@@ -5,8 +5,8 @@ import (
 	"runtime"
 )
 
-// collectRuntimeMetrics собирает runtime-метрики и записывает их в мапу.
-func (a *Agent) collectRuntimeMetrics() {
+// CollectRuntimeMetrics собирает runtime-метрики и записывает их в мапу.
+func (a *Agent) CollectRuntimeMetrics() {
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
 

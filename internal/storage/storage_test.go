@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewMemStorage(t *testing.T) {
-	ms := NewMemStorage()
+	ms := NewMemStorage(300, "", false)
 	assert.NotNil(t, ms, "expected MemStorage instance, got nil")
 	assert.NotNil(t, ms.gauges, "expected gauges map to be initialized, got nil")
 	assert.NotNil(t, ms.counters, "expected counters map to be initialized, got nil")
@@ -41,7 +41,7 @@ func TestUpdateGauge(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ms := NewMemStorage()
+			ms := NewMemStorage(300, "", false)
 			ms.UpdateGauge(tt.gaugeName, tt.value)
 			val, ok := ms.gauges[tt.gaugeName]
 			assert.True(t, ok, "expected gauge '%s' to be present", tt.gaugeName)
@@ -78,7 +78,7 @@ func TestUpdateCounter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ms := NewMemStorage()
+			ms := NewMemStorage(300, "", false)
 			ms.UpdateCounter(tt.counterName, tt.value)
 			val, ok := ms.counters[tt.counterName]
 			assert.True(t, ok, "expected counter '%s' to be present", tt.counterName)
@@ -163,7 +163,7 @@ func TestGetAllMetrics(t *testing.T) {
 	}{
 		{
 			name:     "Empty storage",
-			initial:  NewMemStorage(),
+			initial:  NewMemStorage(300, "", false),
 			expected: "<html><body></body></html>",
 		},
 		{
@@ -202,7 +202,7 @@ func TestSetGauge(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ms := NewMemStorage()
+			ms := NewMemStorage(300, "", false)
 			ms.SetGauge(tt.gaugeName, tt.value)
 			val, ok := ms.gauges[tt.gaugeName]
 			assert.True(t, ok, "expected gauge '%s' to be present", tt.gaugeName)
@@ -230,7 +230,7 @@ func TestSetCounter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ms := NewMemStorage()
+			ms := NewMemStorage(300, "", false)
 			ms.SetCounter(tt.counterName, tt.value)
 			val, ok := ms.counters[tt.counterName]
 			assert.True(t, ok, "expected counter '%s' to be present", tt.counterName)
