@@ -1,10 +1,12 @@
 package value
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/senyabanana/go-mcaa-service/internal/models"
 	"github.com/senyabanana/go-mcaa-service/internal/storage"
 )
 
@@ -50,45 +52,44 @@ func HandleValuePlain(memStorage storage.Repository) http.HandlerFunc {
 	}
 }
 
-//
-//// HandleValueJSON обрабатывает POST-запросы и выводит текущее значение метрики.
-//func HandleValueJSON(memStorage storage.Repository) http.HandlerFunc {
-//	return func(rw http.ResponseWriter, r *http.Request) {
-//		rw.Header().Set("Content-Type", "application/json")
-//
-//		var m storage.Metrics
-//		if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
-//			http.Error(rw, "invalid request body", http.StatusBadRequest)
-//			return
-//		}
-//
-//		switch m.MType {
-//		case storage.Gauge:
-//			value, ok := memStorage.GetGauge(m.ID)
-//			if !ok {
-//				http.Error(rw, "metric not found", http.StatusNotFound)
-//				return
-//			}
-//			m.Value = &value
-//		case storage.Counter:
-//			delta, ok := memStorage.GetCounter(m.ID)
-//			if !ok {
-//				http.Error(rw, "metric not found", http.StatusNotFound)
-//				return
-//			}
-//			m.Delta = &delta
-//		default:
-//			http.Error(rw, "unknown metric type", http.StatusBadRequest)
-//			return
-//		}
-//
-//		resp, err := json.Marshal(m)
-//		if err != nil {
-//			http.Error(rw, "could not marshal response", http.StatusInternalServerError)
-//			return
-//		}
-//
-//		rw.WriteHeader(http.StatusOK)
-//		rw.Write(resp)
-//	}
-//}
+// HandleValueJSON обрабатывает HTTP POST запросы на получение значений метрик в формате JSON.
+func HandleValueJSON(memStorage storage.Repository) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		var m models.Metrics
+
+		if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
+			http.Error(rw, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		switch m.MType {
+		case storage.Gauge:
+			value, ok := memStorage.GetGauge(m.ID)
+			if !ok {
+				http.Error(rw, "metric not found", http.StatusNotFound)
+				return
+			}
+			m.Value = &value
+		case storage.Counter:
+			delta, ok := memStorage.GetCounter(m.ID)
+			if !ok {
+				http.Error(rw, "metric not found", http.StatusNotFound)
+				return
+			}
+			m.Delta = &delta
+		default:
+			http.Error(rw, "unknown metric type", http.StatusBadRequest)
+			return
+		}
+
+		resp, err := json.Marshal(m)
+		if err != nil {
+			http.Error(rw, "could not marshal response", http.StatusInternalServerError)
+			return
+		}
+
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		rw.Write(resp)
+	}
+}
