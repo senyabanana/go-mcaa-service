@@ -27,7 +27,7 @@ func TestHandleStart(t *testing.T) {
 			target: "/",
 			method: http.MethodGet,
 			storage: func() storage.Repository {
-				s := storage.NewMemStorage()
+				s := storage.NewMemStorage(300, "", false)
 				s.SetGauge("test_gauge", 1.2)
 				s.SetCounter("test_counter", 10)
 				return s
@@ -41,7 +41,7 @@ func TestHandleStart(t *testing.T) {
 			name:    "noMetrics",
 			target:  "/",
 			method:  http.MethodGet,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusOK,
 				contentType: "text/html",
@@ -51,7 +51,7 @@ func TestHandleStart(t *testing.T) {
 			name:    "invalidMethod",
 			target:  "/",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(),
+			storage: storage.NewMemStorage(300, "", false),
 			want: want{
 				code:        http.StatusMethodNotAllowed,
 				contentType: "",
