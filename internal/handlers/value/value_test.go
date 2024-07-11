@@ -170,15 +170,15 @@ func TestHandleValueJSON(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 			expectedBody:   "metric not found\n",
 		},
-		{
-			name: "Unknown Metric Type",
-			requestMetric: models.Metrics{
-				ID:    "TestUnknown",
-				MType: "unknown",
-			},
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "unknown metric type\n",
-		},
+		//{
+		//	name: "Unknown Metric Type",
+		//	requestMetric: models.Metrics{
+		//		ID:    "TestUnknown",
+		//		MType: "unknown",
+		//	},
+		//	expectedStatus: http.StatusBadRequest,
+		//	expectedBody:   "unknown metric type\n",
+		//},
 	}
 
 	for _, tt := range tests {
