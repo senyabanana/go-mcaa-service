@@ -80,3 +80,23 @@ func (ms *MemStorage) SetGauge(name string, value float64) {
 func (ms *MemStorage) SetCounter(name string, value int64) {
 	ms.counters[name] = value
 }
+
+type AllMetrics struct {
+	Gauge   map[string]float64
+	Counter map[string]int64
+}
+
+func (ms *MemStorage) AllMetrics() *AllMetrics {
+	return &AllMetrics{
+		Gauge:   ms.gauges,
+		Counter: ms.counters,
+	}
+}
+
+func (ms *MemStorage) UpdateGaugeData(gaugeData map[string]float64) {
+	ms.gauges = gaugeData
+}
+
+func (ms *MemStorage) UpdateCounterData(counterData map[string]int64) {
+	ms.counters = counterData
+}
