@@ -71,21 +71,23 @@ func (ms *MemStorage) GetAllMetrics() string {
 	return result.String()
 }
 
-// SetGauge устанавливает значение метрики типа gauge
+// SetGauge устанавливает значение метрики типа gauge.
 func (ms *MemStorage) SetGauge(name string, value float64) {
 	ms.gauges[name] = value
 }
 
-// SetCounter устанавливает значение метрики типа counter
+// SetCounter устанавливает значение метрики типа counter.
 func (ms *MemStorage) SetCounter(name string, value int64) {
 	ms.counters[name] = value
 }
 
+// AllMetrics содержит все метрики.
 type AllMetrics struct {
 	Gauge   map[string]float64
 	Counter map[string]int64
 }
 
+// AllMetrics позволяет получить все метрики в одном объекте.
 func (ms *MemStorage) AllMetrics() *AllMetrics {
 	return &AllMetrics{
 		Gauge:   ms.gauges,
@@ -93,10 +95,12 @@ func (ms *MemStorage) AllMetrics() *AllMetrics {
 	}
 }
 
+// UpdateGaugeData позволяет обновлять данные для всех ключей.
 func (ms *MemStorage) UpdateGaugeData(gaugeData map[string]float64) {
 	ms.gauges = gaugeData
 }
 
+// UpdateCounterData позволяет обновлять данные для всех ключей.
 func (ms *MemStorage) UpdateCounterData(counterData map[string]int64) {
 	ms.counters = counterData
 }

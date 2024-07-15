@@ -9,10 +9,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func saveStorageToFile(s *MemStorage, filePath string) error {
+// saveStorageToFile сохраняет текущие метрики в файл в формате JSON.
+func saveStorageToFile(ms *MemStorage, filePath string) error {
 	var metrics AllMetrics
-	metrics.Counter = s.counters
-	metrics.Gauge = s.gauges
+	metrics.Counter = ms.counters
+	metrics.Gauge = ms.gauges
 
 	data, err := json.MarshalIndent(metrics, "", "   ")
 	if err != nil {
@@ -23,7 +24,8 @@ func saveStorageToFile(s *MemStorage, filePath string) error {
 
 }
 
-func Dump(s *MemStorage, filePath string, storeInterval int) error {
+// Dump периодически сохраняет метрики в файл с указанным интервалом.
+func Dump(ms *MemStorage, filePath string, storeInterval int) error {
 	dir, _ := path.Split(filePath)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err := os.MkdirAll(dir, 0666)
@@ -34,7 +36,7 @@ func Dump(s *MemStorage, filePath string, storeInterval int) error {
 	pollTicker := time.NewTicker(time.Duration(storeInterval) * time.Second)
 	defer pollTicker.Stop()
 	for range pollTicker.C {
-		err := saveStorageToFile(s, filePath)
+		err := saveStorageToFile(ms, filePath)
 		if err != nil {
 			logrus.Info(err)
 		}
@@ -42,7 +44,8 @@ func Dump(s *MemStorage, filePath string, storeInterval int) error {
 	return nil
 }
 
-func LoadStorageFromFile(s *MemStorage, filePath string) error {
+// LoadStorageFromFile загружает метрики из файла и обновляет текущее состояние метрик в памяти.
+func LoadStorageFromFile(ms *MemStorage, filePath string) error {
 	file, err := os.ReadFile(filePath)
 	if err != nil {
 		logrus.Info(err)
@@ -54,10 +57,10 @@ func LoadStorageFromFile(s *MemStorage, filePath string) error {
 	}
 
 	if len(data.Counter) != 0 {
-		s.UpdateCounterData(data.Counter)
+		ms.UpdateCounterData(data.Counter)
 	}
 	if len(data.Gauge) != 0 {
-		s.UpdateGaugeData(data.Gauge)
+		ms.UpdateGaugeData(data.Gauge)
 	}
 	return err
 }
